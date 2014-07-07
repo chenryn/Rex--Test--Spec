@@ -3,9 +3,10 @@ package Rex::Test::Spec;
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-my @EXPORT    = qw(describe context its);
-my @testFuncs = qw(ok is isnt like unlike);
-my @typeFuncs = qw(pkg service file run);
+my @EXPORT    = qw(describe context its it);
+my @testFuncs = qw(ok is isnt like unlike is_deeply);
+my @typeFuncs = qw(cron file gateway group iptables 
+    pkg port process routes run service sysctl user);
 push @EXPORT, @testFuncs, @typeFuncs, 'done_testing';
 
 our ($obj, $msg);
@@ -18,11 +19,11 @@ Rex::Test::Spec - Write Rex::Test like RSpec!
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -34,10 +35,58 @@ Perhaps a little code snippet.
     use Rex::Test::Spec;
     describe "Nginx Test", sub {
         context run("nginx -t"), "nginx.conf testing", sub {
-            is its('exit'), 0;
+            like its('stdout'), qr/ok/;
         };
         context file("/etc/nginx.conf"), sub {
+            is its('ensure'), 'present';
             like its('content'), qr/listen\s+80;/;
+        };
+        context service("nginx"), sub {
+            is its('ensure'), 'running';
+        };
+        context pkg("nginx"), sub {
+            is its('ensure'), 'present';
+            is its('version'), '1.5.8';
+        };
+        context cron, sub {
+            like its('www'), 'logrotate';
+        };
+        context gateway, sub {
+            is its('value'), '192.168.0.1';
+        };
+        context group('www'), sub {
+            ok its('ensure');
+        };
+        context iptables, sub {
+        };
+        context port(80), sub {
+            is its('bind'), '0.0.0.0';
+            is its('proto'), 'tcp';
+            is its('command'), 'nginx';
+        };
+        context process('nginx'), sub {
+            like its('command'), qr(nginx -c /etc/nginx.conf);
+            ok its('mem') > 1024;
+        };
+        context routes, sub {
+            is_deeply its(1), {
+                destination => $dest,
+                gateway     => $gw,
+                genmask     => $genmask,
+                flags       => $flags,
+                mss         => $mss,
+                irtt        => $irtt,
+                iface       => $iface,
+            };
+        };
+        context sysctl, sub {
+            is its('vm.swapiness'), 1;
+        };
+        context user('www'), sub {
+            ok its('ensure');
+            is its('home'), '/var/www/html';
+            is its('shell'), '/sbin/nologin';
+            is_deeply its('belong_to'), ['www', 'nogroup'];
         };
     };
     done_testing;
@@ -76,9 +125,10 @@ BEGIN { *context = \&describe }
 =cut
 
 sub its {
-    my $key = shift;
-    $obj->getvalue($key);
+    return $obj->getvalue(@_);
 }
+
+BEGIN { *it = \&its }
 
 for my $func (@testFuncs) {
     no strict 'refs';
@@ -96,7 +146,9 @@ sub AUTOLOAD {
 
     eval "use $AUTOLOAD";
     die "Error loading $AUTOLOAD." if $@;
-    return $AUTOLOAD->new(name => shift @_);
+    my @args = @_;
+    unshift @args, 'name' if scalar @args == 1;
+    return $AUTOLOAD->new(@args);
 }
 
 sub import {

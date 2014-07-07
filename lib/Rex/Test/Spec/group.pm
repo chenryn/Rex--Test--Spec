@@ -1,4 +1,4 @@
-package Rex::Test::Spec::pkg;
+package Rex::Test::Spec::group;
 
 use strict;
 use warnings;
@@ -17,19 +17,9 @@ sub new {
   return $self;
 }
 
-sub version {
-  my ( $self ) = @_;
-  my @packages = installed_packages;
-  for my $p (@packages) {
-    if ($p->{name} eq $self->{name}) {
-      return $p->{version};
-    }
-  }
-}
-
 sub ensure {
   my ( $self ) = @_;
-  return is_installed($self->{name}) ? 'present' : 'absent';
+  return get_gid($self->{name});
 }
 
 sub getvalue {

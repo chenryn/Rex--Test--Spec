@@ -19,9 +19,55 @@ sub new {
 
 sub ensure {
   my ( $self ) = @_;
-  return is_file($self->{name});
+  my $ret = 'absent';
+  if ( is_file($self->{name}) ) {
+    $ret = 'file';
+  } elsif ( is_dir($self->{name}) ) {
+    $ret = 'directory';
+  } elsif ( is_symlink($self->{name}) ) {
+    $ret = 'symlink';
+  };
+  return $ret;
 }
 
+sub mode {
+  my ( $self ) = @_;
+  my %ret = stat($self->{name});
+  return $ret{mode};
+}
+
+sub uid {
+  my ( $self ) = @_;
+  my %ret = stat($self->{name});
+  return $ret{uid};
+}
+
+sub owner {
+  my ( $self ) = @_;
+  my %ret = stat($self->{name});
+  for my $user (user_list) {
+    return $user if get_uid($user) == $ret{uid};
+  }
+}
+
+sub readable {
+  my ( $self ) = @_;
+  return is_readable($self->{name});
+}
+
+sub writable {
+  my ( $self ) = @_;
+  return is_writable($self->{name});
+}
+
+sub mounted_on {
+  my ( $self ) = @_;
+  my $df = df();
+  for $dev ( keys %{$df} ) {
+    return $dev if $ret->{$dev}->{mounted_on} eq $self->{name};
+  };
+  return undef;
+}
 sub content {
   my ( $self ) = @_;
   return cat($self->{name}) || undef;
