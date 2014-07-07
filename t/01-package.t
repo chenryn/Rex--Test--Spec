@@ -17,8 +17,6 @@
 
 use strict;
 use warnings;
-use lib '../lib';
-use Test::More;
 use Rex::Test::Spec;
 
 describe "test desc", sub {

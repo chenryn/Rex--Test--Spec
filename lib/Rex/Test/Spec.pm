@@ -3,12 +3,10 @@ package Rex::Test::Spec;
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use base qw(Exporter);
-use Exporter ();
-our @EXPORT = qw(describe context its);
-my  @testFuncs = qw(ok is isnt like unlike);
-my  @typeFuncs = qw(pkg service file run);
-push @EXPORT, @testFuncs, @typeFuncs;
+my @EXPORT    = qw(describe context its);
+my @testFuncs = qw(ok is isnt like unlike);
+my @typeFuncs = qw(pkg service file run);
+push @EXPORT, @testFuncs, @typeFuncs, 'done_testing';
 
 our ($obj, $msg);
 
@@ -71,7 +69,6 @@ sub describe {
 
 =cut
 
-sub context;
 BEGIN { *context = \&describe }
 
 =head2 its
@@ -91,6 +88,8 @@ for my $func (@testFuncs) {
     };
 };
 
+BEGIN { *done_testing = \&Test::More::done_testing }
+
 sub AUTOLOAD {
     my ($method) = our $AUTOLOAD =~ /^[\w:]+::(\w+)$/;
     return if $method eq 'DESTROY';
@@ -98,6 +97,14 @@ sub AUTOLOAD {
     eval "use $AUTOLOAD";
     die "Error loading $AUTOLOAD." if $@;
     return $AUTOLOAD->new(name => shift @_);
+}
+
+sub import {
+    no strict 'refs';
+    no warnings;
+    for ( @EXPORT ) {
+        *{"main::$_"} = \&$_;
+    }
 }
 
 =head1 AUTHOR
