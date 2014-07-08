@@ -148,7 +148,7 @@ BEGIN { *done_testing = \&Test::More::done_testing }
 =head2 Rex resource type generation functions
 
 Now support I<cron>, I<gateway>, I<iptables>, I<port>, I<routes>, I<service>,
-I<user>, I<file>, I<I<group>, I<pkg>, I<process>, I<run>, I<sysctl>.
+I<user>, I<file>, I<group>, I<pkg>, I<process>, I<run>, I<sysctl>.
 
 See L</"SYNOPSIS"> for more details.
 

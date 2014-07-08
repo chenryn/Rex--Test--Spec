@@ -1,55 +1,131 @@
-Rex-Test-Spec
+NAME
+    Rex::Test::Spec - Write Rex::Test like RSpec!
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+VERSION
+    Version 0.03
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+SYNOPSIS
+        use Rex::Test::Spec;
+        describe "Nginx Test", sub {
+            context run("nginx -t"), "nginx.conf testing", sub {
+                like its('stdout'), qr/ok/;
+            };
+            context file("~/.ssh/id_rsa"), sub {
+                is its('ensure'), 'file';
+                is its('mode'), '0600';
+                like its('content'), qr/name\@email\.com/;
+            };
+            context file("/data"), sub {
+                is its('ensure'), 'directory';
+                is its('owner'), 'www';
+                is its('mounted_on'), '/dev/sdb1';
+                isnt its('writable');
+            };
+            context service("nginx"), sub {
+                is its('ensure'), 'running';
+            };
+            context pkg("nginx"), sub {
+                is its('ensure'), 'present';
+                is its('version'), '1.5.8';
+            };
+            context cron, sub {
+                like its('www'), 'logrotate';
+            };
+            context gateway, sub {
+                is it, '192.168.0.1';
+            };
+            context group('www'), sub {
+                ok its('ensure');
+            };
+            context iptables, sub {
+            };
+            context port(80), sub {
+                is its('bind'), '0.0.0.0';
+                is its('proto'), 'tcp';
+                is its('command'), 'nginx';
+            };
+            context process('nginx'), sub {
+                like its('command'), qr(nginx -c /etc/nginx.conf);
+                ok its('mem') > 1024;
+            };
+            context routes, sub {
+                is_deeply its(1), {
+                    destination => $dest,
+                    gateway     => $gw,
+                    genmask     => $genmask,
+                    flags       => $flags,
+                    mss         => $mss,
+                    irtt        => $irtt,
+                    iface       => $iface,
+                };
+            };
+            context sysctl, sub {
+                is its('vm.swapiness'), 1;
+            };
+            context user('www'), sub {
+                ok its('ensure');
+                is its('home'), '/var/www/html';
+                is its('shell'), '/sbin/nologin';
+                is_deeply its('belong_to'), ['www', 'nogroup'];
+            };
+        };
+        done_testing;
 
+EXPORT FUNCTIONS
+  Spec definition functions
+    These are the functions you will use to define behaviors and run your
+    specs: *describe* (and alias to *context*), *its* (alias to *it*).
 
-INSTALLATION
+    Normally suggest "describe "strings"" and "context resource type
+    object", use "its(key)" return value, "it" return objects by default.
 
-To install this module, run the following commands:
+  Test::More export functions
+    This now include *is*, *isnt*, *ok*, *is_deeply*, *like*, *unlike*,
+    *done_testing*. You'll use these to assert correct behavior.
 
-	perl Makefile.PL
-	make
-	make test
-	make install
+    The resource type name will be automatic passed as testing message.
 
-SUPPORT AND DOCUMENTATION
+  Rex resource type generation functions
+    Now support *cron*, *gateway*, *iptables*, *port*, *routes*, *service*,
+    *user*, *file*, *group*, *pkg*, *process*, *run*, *sysctl*.
 
-After installing, you can find documentation for this module with the
-perldoc command.
+    See "SYNOPSIS" for more details.
 
-    perldoc Rex::Test::Spec
+AUTHOR
+    Rao Chenlin(chenryn), "<rao.chenlin at gmail.com>"
 
-You can also look for information at:
+SEE ALSO
+    1. Rspec
+        <http://rspec.info/>
 
-    RT, CPAN's request tracker (report bugs here)
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Rex-Test-Spec
+    2. Serverspec
+        <http://serverspec.org/>
 
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Rex-Test-Spec
+    3. TDD (Test Driven Development)
+        <http://en.wikipedia.org/wiki/Test-driven_development>
 
-    CPAN Ratings
-        http://cpanratings.perl.org/d/Rex-Test-Spec
+    4. BDD (Behavior Driven Development)
+        <http://en.wikipedia.org/wiki/Behavior_Driven_Development>
 
-    Search CPAN
-        http://search.cpan.org/dist/Rex-Test-Spec/
+    5. Test::More
+    6. Rex
 
+BUGS
+    Please report any bugs or feature requests to "bug-rex-test-spec at
+    rt.cpan.org", or through the web interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Rex-Test-Spec>. I will
+    be notified, and then you'll automatically be notified of progress on
+    your bug as I make changes.
+
+    Also accept pull requests and issue at
+    <https://github.com/chenryn/Rex--Test--Spec>.
 
 LICENSE AND COPYRIGHT
+    Copyright 2014 Rao Chenlin(chenryn).
 
-Copyright (C) 2014 Rao Chenlin(chenryn)
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either: the GNU General Public License as published
+    by the Free Software Foundation; or the Artistic License.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See L<http://dev.perl.org/licenses/> for more information.
+    See <http://dev.perl.org/licenses/> for more information.
 
