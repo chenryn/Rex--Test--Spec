@@ -19,27 +19,30 @@ Rex::Test::Spec - Write Rex::Test like RSpec!
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
 
     use Rex::Test::Spec;
     describe "Nginx Test", sub {
         context run("nginx -t"), "nginx.conf testing", sub {
             like its('stdout'), qr/ok/;
         };
-        context file("/etc/nginx.conf"), sub {
-            is its('ensure'), 'present';
-            like its('content'), qr/listen\s+80;/;
+        context file("~/.ssh/id_rsa"), sub {
+            is its('ensure'), 'file';
+            is its('mode'), '0600';
+            like its('content'), qr/name\@email\.com/;
+        };
+        context file("/data"), sub {
+            is its('ensure'), 'directory';
+            is its('owner'), 'www';
+            is its('mounted_on'), '/dev/sdb1';
+            isnt its('writable');
         };
         context service("nginx"), sub {
             is its('ensure'), 'running';
@@ -52,7 +55,7 @@ Perhaps a little code snippet.
             like its('www'), 'logrotate';
         };
         context gateway, sub {
-            is its('value'), '192.168.0.1';
+            is it, '192.168.0.1';
         };
         context group('www'), sub {
             ok its('ensure');
@@ -91,14 +94,15 @@ Perhaps a little code snippet.
     };
     done_testing;
 
-=head1 EXPORT
+=head1 EXPORT FUNCTIONS
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head2 Spec definition functions
 
-=head1 SUBROUTINES/METHODS
+These are the functions you will use to define behaviors and run your specs:
+I<describe> (and alias to I<context>), I<its> (alias to I<it>).
 
-=head2 describe
+Normally suggest C<< describe "strings" >> and C<< context resource type object >>,
+use C<< its(key) >> return value, C<< it >> return objects by default.
 
 =cut
 
@@ -114,21 +118,22 @@ sub describe {
     $code->();
 }
 
-=head2 context
-
-=cut
-
 BEGIN { *context = \&describe }
-
-=head2 its
-
-=cut
 
 sub its {
     return $obj->getvalue(@_);
 }
 
 BEGIN { *it = \&its }
+
+=head2 Test::More export functions
+
+This now include I<is>, I<isnt>, I<ok>, I<is_deeply>, I<like>, I<unlike>, I<done_testing>.
+You'll use these to assert correct behavior.
+
+The resource type name will be automatic passed as testing message.
+
+=cut
 
 for my $func (@testFuncs) {
     no strict 'refs';
@@ -139,6 +144,15 @@ for my $func (@testFuncs) {
 };
 
 BEGIN { *done_testing = \&Test::More::done_testing }
+
+=head2 Rex resource type generation functions
+
+Now support I<cron>, I<gateway>, I<iptables>, I<port>, I<routes>, I<service>,
+I<user>, I<file>, I<I<group>, I<pkg>, I<process>, I<run>, I<sysctl>.
+
+See L</"SYNOPSIS"> for more details.
+
+=cut
 
 sub AUTOLOAD {
     my ($method) = our $AUTOLOAD =~ /^[\w:]+::(\w+)$/;
@@ -163,47 +177,39 @@ sub import {
 
 Rao Chenlin(chenryn), C<< <rao.chenlin at gmail.com> >>
 
+=head1 SEE ALSO
+ 
+=over 4
+
+=item 1. Rspec
+
+L<http://rspec.info/>
+
+=item 2. Serverspec
+
+L<http://serverspec.org/>
+
+=item 3. TDD (Test Driven Development)
+
+L<http://en.wikipedia.org/wiki/Test-driven_development>
+
+=item 4. BDD (Behavior Driven Development)
+
+L<http://en.wikipedia.org/wiki/Behavior_Driven_Development>
+
+=item 5. L<Test::More>
+
+=item 6. L<Rex>
+
+=back
+
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-rex-test-spec at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Rex-Test-Spec>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Rex::Test::Spec
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Rex-Test-Spec>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Rex-Test-Spec>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Rex-Test-Spec>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Rex-Test-Spec/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
+Also accept pull requests and issue at L<https://github.com/chenryn/Rex--Test--Spec>.
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -214,7 +220,6 @@ under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
 See L<http://dev.perl.org/licenses/> for more information.
-
 
 =cut
 
