@@ -20,12 +20,12 @@ sub new {
 sub ensure {
   my ( $self ) = @_;
   my $ret = 'absent';
-  if ( is_file($self->{name}) ) {
+  if ( Rex::Commands::Fs::is_symlink($self->{name}) ) {
+    $ret = 'symlink';
+  } elsif ( is_file($self->{name}) ) {
     $ret = 'file';
   } elsif ( is_dir($self->{name}) ) {
     $ret = 'directory';
-  } elsif ( is_symlink($self->{name}) ) {
-    $ret = 'symlink';
   };
   return $ret;
 }
@@ -63,11 +63,12 @@ sub writable {
 sub mounted_on {
   my ( $self ) = @_;
   my $df = df();
-  for $dev ( keys %{$df} ) {
-    return $dev if $ret->{$dev}->{mounted_on} eq $self->{name};
+  for my $dev ( keys %{$df} ) {
+    return $dev if $df->{$dev}->{mounted_on} eq $self->{name};
   };
   return undef;
 }
+
 sub content {
   my ( $self ) = @_;
   return cat($self->{name}) || undef;
