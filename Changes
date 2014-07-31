@@ -1,4 +1,8 @@
 Revision history for Rex-Test-Spec
+0.05    2014-08-01/00:04:00
+        bugfix: is_symlink function isn't exported by Rex.
+        add 02-file.t.
+
 0.04    2014-07-30/18:37:00
         Change license to apache license v2.
 
