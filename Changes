@@ -1,4 +1,7 @@
 Revision history for Rex-Test-Spec
+0.06    2015-06-01/13:35:00
+        bugfix: I don't know why do Spec/*.pm missing in 0.05.tar.gz!!
+
 0.05    2014-08-01/00:04:00
         bugfix: is_symlink function isn't exported by Rex.
         add 02-file.t.

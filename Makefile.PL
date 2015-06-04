@@ -20,7 +20,7 @@ WriteMakefile(
         'Test::Pod::Coverage' => 0,
     },
     PREREQ_PM => {
-        'Rex' => 0.45,
+        'Rex' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Rex-Test-Spec-*' },
